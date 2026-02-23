@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Base resets --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: #000000;
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Monarch surface treatment --- */
+
+/* Card aura — subtle violet ambient glow */
+.monarch-card {
+  background: rgba(15, 15, 19, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(124, 58, 237, 0.08);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.monarch-card:hover {
+  border-color: rgba(124, 58, 237, 0.15);
+  box-shadow:
+    0 0 1px rgba(124, 58, 237, 0.2),
+    0 0 20px rgba(124, 58, 237, 0.04);
+}
+
+/* Panel — larger surface area, more subtle */
+.monarch-panel {
+  background: rgba(15, 15, 19, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(124, 58, 237, 0.06);
+}
+
+/* Input fields on dark monarch bg */
+.monarch-input {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.monarch-input:focus {
+  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.08);
+  outline: none;
+}
+
+/* Button with neon ambient */
+.monarch-btn {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 200ms ease, transform 150ms ease;
+}
+
+.monarch-btn:hover {
+  box-shadow:
+    0 0 20px rgba(124, 58, 237, 0.25),
+    0 0 60px rgba(124, 58, 237, 0.08);
+}
+
+.monarch-btn:active {
+  transform: scale(0.98);
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.5);
+}
+
+/* --- Selection --- */
+::selection {
+  background: rgba(124, 58, 237, 0.4);
+  color: #fff;
+}
+
+/* --- Title bar drag region --- */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* --- Custom input number hide spinners --- */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* --- Neon glow keyframes --- */
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(124, 58, 237, 0.3),
+      0 0 30px rgba(124, 58, 237, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(124, 58, 237, 0.5),
+      0 0 50px rgba(124, 58, 237, 0.25),
+      0 0 80px rgba(34, 211, 238, 0.1);
+  }
+}
+
+@keyframes energy-ring {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes particle-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-12px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* --- Neon border gradient --- */
+.neon-border {
+  position: relative;
+}
+
+.neon-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.5),
+    rgba(34, 211, 238, 0.3),
+    rgba(124, 58, 237, 0.2)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* --- Drop zone active state --- */
+.drop-active {
+  animation: neon-pulse 1.5s ease-in-out infinite;
+}
+
+/* --- Progress bar energy aura --- */
+.progress-aura {
+  position: relative;
+}
+
+.progress-aura::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.15),
+    rgba(34, 211, 238, 0.15),
+    rgba(124, 58, 237, 0.15)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

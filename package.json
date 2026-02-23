@@ -1,0 +1,60 @@
+{
+  "name": "beru-resizer",
+  "version": "1.0.0",
+  "description": "Image resizer with Solo Leveling dark futuristic theme",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "build:vite": "vite build",
+    "build": "npm run build:vite && electron-builder",
+    "preview": "vite preview"
+  },
+  "build": {
+    "appId": "com.beru.resizer",
+    "productName": "BeruResizer",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
+    "mac": {
+      "target": "dmg",
+      "icon": "resources/icon.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "resources/icon.png"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.17",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1",
+    "framer-motion": "^11.0.3",
+    "postcss": "^8.4.33",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.0.12",
+    "wait-on": "^7.2.0"
+  }
+}
