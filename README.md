@@ -50,8 +50,8 @@ Built with Electron + React + Sharp + TailwindCSS.
 ## Installation
 
 ```bash
-git clone <repo-url> BeruResizer
-cd BeruResizer
+git clone git@github.com:Jonathanlight/beru_resizer.git
+cd beru_resizer
 npm install
 ```
 
