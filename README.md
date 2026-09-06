@@ -41,8 +41,8 @@ Built with Electron + React + Sharp + TailwindCSS.
 
 ## Prérequis
 
-- **Node.js** >= 18.x
-- **npm** >= 9.x
+- **Node.js** >= 20.x
+- **npm** >= 10.x
 - **macOS**, **Windows** ou **Linux**
 
 ---
