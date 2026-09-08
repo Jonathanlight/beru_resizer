@@ -39,3 +39,45 @@ export function playCompleteSound() {
     // Audio not available — fail silently
   }
 }
+
+/**
+ * Short electric zap sound for reset action.
+ */
+export function playResetSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const now = ctx.currentTime
+
+    // Quick descending zap
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(1400, now)
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.15)
+    gain.gain.setValueAtTime(0.06, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
+    osc.connect(gain).connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.2)
+
+    // Static crackle overlay
+    const bufferSize = ctx.sampleRate * 0.1
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+    const data = noiseBuffer.getChannelData(0)
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.3
+    }
+    const noise = ctx.createBufferSource()
+    const noiseGain = ctx.createGain()
+    noise.buffer = noiseBuffer
+    noiseGain.gain.setValueAtTime(0.04, now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1)
+    noise.connect(noiseGain).connect(ctx.destination)
+    noise.start(now)
+    noise.stop(now + 0.1)
+
+    setTimeout(() => ctx.close(), 400)
+  } catch {
+    // Audio not available — fail silently
+  }
+}

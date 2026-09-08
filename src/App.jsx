@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import TitleBar from './components/TitleBar'
 import DropZone from './components/DropZone'
 import ImageList from './components/ImageList'
@@ -8,7 +8,7 @@ import ProgressOverlay from './components/ProgressOverlay'
 import ResultsPanel from './components/ResultsPanel'
 import ShadowFlameBackground from './components/ShadowFlameBackground'
 import { useLocalStorage } from './hooks/useLocalStorage'
-import { playCompleteSound } from './utils/sound'
+import { playCompleteSound, playResetSound } from './utils/sound'
 
 const DEFAULT_SETTINGS = {
   mode: 'percentage',
@@ -24,6 +24,7 @@ export default function App() {
   const [settings, setSettings] = useLocalStorage('beru:settings', DEFAULT_SETTINGS)
   const [soundEnabled, setSoundEnabled] = useLocalStorage('beru:sound', true)
   const [outputDir, setOutputDir] = useLocalStorage('beru:outputDir', null)
+  const [openAfterResize, setOpenAfterResize] = useLocalStorage('beru:openAfter', true)
 
   // Session state
   const [images, setImages] = useState([])
@@ -32,8 +33,10 @@ export default function App() {
   const [results, setResults] = useState(null)
   const [error, setError] = useState(null)
 
-  // Background animation state
+  // Animation state
   const [bgPulse, setBgPulse] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
+  const [settingsFade, setSettingsFade] = useState(false)
 
   const cleanupRef = useRef(null)
 
@@ -99,11 +102,12 @@ export default function App() {
           height: img.height,
         })),
         options: {
-          mode: settings.mode,
+          // Presets mode uses exact dimensions — map to 'dimensions' for the backend
+          mode: settings.mode === 'presets' ? 'dimensions' : settings.mode,
           percentage: settings.percentage,
           width: settings.width,
           height: settings.height,
-          keepAspect: settings.keepAspect,
+          keepAspect: settings.mode === 'presets' ? false : settings.keepAspect,
           format: settings.format,
           outputDir: outputDir,
         },
@@ -115,14 +119,44 @@ export default function App() {
       setTimeout(() => setBgPulse(false), 100)
 
       if (soundEnabled) playCompleteSound()
+
+      // Auto-open output folder
+      const successResults = res?.filter((r) => r.success) || []
+      if (openAfterResize && successResults.length > 0) {
+        const outPath = outputDir || (successResults[0]?.outputPath
+          ? successResults[0].outputPath.substring(0, successResults[0].outputPath.lastIndexOf('/'))
+          : null)
+        if (outPath) {
+          await window.electronAPI?.openPath(outPath)
+        }
+      }
     } catch (err) {
       setError(err.message || 'Resize failed')
     } finally {
       setIsResizing(false)
     }
-  }, [images, settings, outputDir, soundEnabled])
+  }, [images, settings, outputDir, soundEnabled, openAfterResize])
 
+  // Full reset with animation
   const handleReset = useCallback(() => {
+    setIsResetting(true)
+    setSettingsFade(true)
+    if (soundEnabled) playResetSound()
+
+    setTimeout(() => {
+      setImages([])
+      setResults(null)
+      setError(null)
+      setProgress({ current: 0, total: 0, fileName: '' })
+      setSettings(DEFAULT_SETTINGS)
+      setSettingsFade(false)
+
+      setTimeout(() => setIsResetting(false), 200)
+    }, 200)
+  }, [soundEnabled, setSettings])
+
+  // Simple clear for "New batch" from ResultsPanel
+  const handleNewBatch = useCallback(() => {
     setImages([])
     setResults(null)
     setError(null)
@@ -163,7 +197,7 @@ export default function App() {
             <h2 className="text-sm font-display font-semibold text-white/60 uppercase tracking-wider">
               Resize Settings
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
               {/* Sound toggle */}
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
@@ -189,32 +223,94 @@ export default function App() {
                   </svg>
                 )}
               </button>
+
+              {/* Reset button */}
+              <motion.button
+                onClick={handleReset}
+                disabled={isResetting || isResizing}
+                className="flex items-center justify-center w-7 h-7 rounded-md text-white/30 hover:text-neon-cyan/70 hover:bg-neon-cyan/[0.06] transition-all disabled:opacity-30"
+                title="Reset all settings"
+                animate={isResetting ? {
+                  rotate: [0, 360],
+                  scale: [1, 1.15, 1],
+                } : {}}
+                transition={{ duration: 0.4 }}
+              >
+                <motion.div
+                  animate={isResetting ? {
+                    boxShadow: [
+                      '0 0 0px rgba(34,211,238,0)',
+                      '0 0 16px rgba(34,211,238,0.6)',
+                      '0 0 0px rgba(34,211,238,0)',
+                    ],
+                  } : {}}
+                  transition={{ duration: 0.4 }}
+                  className="flex items-center justify-center rounded-md"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 4v6h6" />
+                    <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+                  </svg>
+                </motion.div>
+              </motion.button>
             </div>
           </div>
 
           {/* Resize controls card */}
-          <div className="monarch-card rounded-lg p-4">
+          <motion.div
+            className="monarch-card rounded-lg p-4"
+            animate={settingsFade ? { opacity: 0.3 } : { opacity: 1 }}
+            transition={{ duration: 0.15 }}
+          >
             <ResizeControls
               settings={settings}
               onChange={setSettings}
               referenceImage={referenceImage}
             />
-          </div>
+          </motion.div>
 
-          {/* Output directory */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={selectOutputDir}
-              className="monarch-card flex items-center gap-2 px-3 py-2 rounded-md text-xs text-white/50 hover:text-white/70 transition-all"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-              </svg>
-              Output folder
-            </button>
-            <span className="text-[11px] font-mono text-white/25 truncate flex-1 min-w-0">
-              {outputDir || 'Default: ./output'}
-            </span>
+          {/* Output directory + open folder toggle */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={selectOutputDir}
+                className="monarch-card flex items-center gap-2 px-3 py-2 rounded-md text-xs text-white/50 hover:text-white/70 transition-all"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+                </svg>
+                Output folder
+              </button>
+              <span className="text-[11px] font-mono text-white/25 truncate flex-1 min-w-0">
+                {outputDir || 'Default: ./output'}
+              </span>
+            </div>
+
+            {/* Open after resize checkbox */}
+            <label className="flex items-center gap-2.5 px-1 py-1 cursor-pointer group">
+              <div className={`
+                w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center transition-all
+                ${openAfterResize
+                  ? 'bg-neon-violet/20 border-neon-violet/40'
+                  : 'bg-white/[0.02] border-white/[0.08] group-hover:border-white/[0.15]'
+                }
+              `}>
+                {openAfterResize && (
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-neon-violet-light">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+              <input
+                type="checkbox"
+                checked={openAfterResize}
+                onChange={(e) => setOpenAfterResize(e.target.checked)}
+                className="sr-only"
+              />
+              <span className="text-[11px] text-white/35 group-hover:text-white/50 transition-colors">
+                Open folder after resize
+              </span>
+            </label>
           </div>
 
           {/* Error */}
@@ -260,7 +356,7 @@ export default function App() {
           <ResultsPanel
             results={results}
             outputDir={outputDir || (results?.[0]?.outputPath ? results[0].outputPath.substring(0, results[0].outputPath.lastIndexOf('/')) : null)}
-            onReset={handleReset}
+            onReset={handleNewBatch}
           />
         </div>
       </div>
