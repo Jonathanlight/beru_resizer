@@ -5,13 +5,17 @@ export const MOBILE_PRESETS = {
     { id: 'ios-ip67-landscape', name: 'iPhone 6.7" Landscape', width: 2796, height: 1290, category: 'phone' },
     { id: 'ios-ip65', name: 'iPhone 6.5"', width: 1284, height: 2778, category: 'phone' },
     { id: 'ios-ip61', name: 'iPhone 6.1"', width: 1179, height: 2556, category: 'phone' },
+    { id: 'ios-iphone-duo', name: 'iPhone Duo', width: 1398, height: 2034, category: 'phone' },
     { id: 'ios-ipad129-portrait', name: 'iPad 12.9" Portrait', width: 2048, height: 2732, category: 'tablet' },
     { id: 'ios-ipad129-landscape', name: 'iPad 12.9" Landscape', width: 2732, height: 2048, category: 'tablet' },
+    // App Store header & search banners
+    { id: 'ios-header-search', name: 'En-tête & recherche', width: 5244, height: 2950, category: 'banner' },
+    { id: 'ios-header-search-wide', name: 'En-tête & recherche (large)', width: 3840, height: 1646, category: 'banner' },
   ],
   android: [
     // Google Play store listing graphics
     { id: 'and-icon', name: 'App Icon', width: 512, height: 512, category: 'icon' },
-    { id: 'and-feature', name: 'Feature Graphic', width: 1024, height: 500, category: 'banner' },
+    { id: 'and-feature', name: 'Image de présentation', width: 1024, height: 500, category: 'banner' },
     // Phone screenshots
     { id: 'and-phone', name: 'Phone Portrait', width: 1080, height: 1920, category: 'phone' },
     { id: 'and-phone-landscape', name: 'Phone Landscape', width: 1920, height: 1080, category: 'phone' },

@@ -167,10 +167,11 @@ ipcMain.handle('image:resize', async (_event, { files, options }) => {
         })
       }
 
-      const outputName = `${path.basename(file.name, ext)}_resized${outputExt}`
+      // Suffix with the final dimensions so successive runs with other sizes don't overwrite each other
+      const { data, info } = await pipeline.toBuffer({ resolveWithObject: true })
+      const outputName = `${path.basename(file.name, ext)}_${info.width}x${info.height}${outputExt}`
       const outputPath = path.join(outDir, outputName)
-
-      const info = await pipeline.toFile(outputPath)
+      fs.writeFileSync(outputPath, data)
 
       const outputStats = fs.statSync(outputPath)
 

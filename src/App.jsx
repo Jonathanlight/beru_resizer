@@ -48,6 +48,17 @@ export default function App() {
     return () => cleanupRef.current?.()
   }, [])
 
+  // Prevent Electron from navigating to a file dropped outside the drop zone
+  useEffect(() => {
+    const prevent = (e) => e.preventDefault()
+    window.addEventListener('dragover', prevent)
+    window.addEventListener('drop', prevent)
+    return () => {
+      window.removeEventListener('dragover', prevent)
+      window.removeEventListener('drop', prevent)
+    }
+  }, [])
+
   // Load files from paths — get metadata + thumbnails
   const loadFiles = useCallback(async (paths) => {
     setError(null)
@@ -324,33 +335,33 @@ export default function App() {
             </motion.div>
           )}
 
-          {/* Resize button */}
-          {!results && (
-            <motion.button
-              onClick={handleResize}
-              disabled={!hasImages || isResizing}
-              className={`
-                relative w-full py-3 rounded-lg font-display font-semibold text-sm uppercase tracking-wider transition-all overflow-hidden monarch-btn
-                ${hasImages
-                  ? 'bg-neon-violet text-white shadow-neon-violet hover:shadow-neon-violet-intense'
-                  : 'bg-white/[0.04] text-white/20 cursor-not-allowed'
-                }
-              `}
-              whileHover={hasImages ? { scale: 1.01 } : {}}
-              whileTap={hasImages ? { scale: 0.98 } : {}}
-            >
-              {hasImages && (
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-neon-violet via-neon-cyan/30 to-neon-violet opacity-0"
-                  animate={{ opacity: [0, 0.15, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-              )}
-              <span className="relative z-10">
-                {isResizing ? 'Processing...' : `Resize ${images.length || ''} Image${images.length !== 1 ? 's' : ''}`}
-              </span>
-            </motion.button>
-          )}
+          {/* Resize button — stays available after a run so the batch can be re-run with other settings */}
+          <motion.button
+            onClick={handleResize}
+            disabled={!hasImages || isResizing}
+            className={`
+              relative w-full py-3 rounded-lg font-display font-semibold text-sm uppercase tracking-wider transition-all overflow-hidden monarch-btn
+              ${hasImages
+                ? 'bg-neon-violet text-white shadow-neon-violet hover:shadow-neon-violet-intense'
+                : 'bg-white/[0.04] text-white/20 cursor-not-allowed'
+              }
+            `}
+            whileHover={hasImages ? { scale: 1.01 } : {}}
+            whileTap={hasImages ? { scale: 0.98 } : {}}
+          >
+            {hasImages && (
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-neon-violet via-neon-cyan/30 to-neon-violet opacity-0"
+                animate={{ opacity: [0, 0.15, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            )}
+            <span className="relative z-10">
+              {isResizing
+                ? 'Processing...'
+                : `${results ? 'Resize again' : 'Resize'} ${images.length || ''} Image${images.length !== 1 ? 's' : ''}`}
+            </span>
+          </motion.button>
 
           {/* Results */}
           <ResultsPanel

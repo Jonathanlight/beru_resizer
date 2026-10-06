@@ -50,7 +50,7 @@ export default function DropZone({ onFilesSelected, disabled }) {
       setIsDragging(false)
       dragCounter.current = 0
       const files = Array.from(e.dataTransfer.files)
-      const paths = files.map((f) => f.path).filter(Boolean)
+      const paths = files.map((f) => window.electronAPI?.getPathForFile(f)).filter(Boolean)
       handleFiles(paths)
     },
     [handleFiles]

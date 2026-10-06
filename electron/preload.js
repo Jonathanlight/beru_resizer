@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, webUtils } = require('electron')
 
 // Expose a secure API to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -10,6 +10,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // File dialogs
   openImages: () => ipcRenderer.invoke('dialog:openImages'),
   selectOutputDir: () => ipcRenderer.invoke('dialog:selectOutputDir'),
+
+  // Resolve the filesystem path of a dropped File (File.path was removed in Electron 32)
+  getPathForFile: (file) => {
+    try {
+      return webUtils.getPathForFile(file)
+    } catch {
+      return ''
+    }
+  },
 
   // Image operations
   getImageInfo: (filePath) => ipcRenderer.invoke('image:getInfo', filePath),
